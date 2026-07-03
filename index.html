@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Excel × CSV Left Join Tool</title>
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e1ec;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 34%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 36px 20px 56px;
+    }
+
+    .hero {
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #eaf1ff;
+      color: #1e40af;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 4vw, 42px);
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 780px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(217, 225, 236, 0.9);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .drop {
+      border: 2px dashed var(--line);
+      background: #fbfdff;
+      border-radius: 16px;
+      padding: 22px;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+
+    .drop.dragover {
+      border-color: var(--primary);
+      background: #eef5ff;
+      transform: translateY(-1px);
+    }
+
+    .file-input {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .file-name {
+      margin-top: 12px;
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .file-name.ok {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .settings {
+      margin-top: 18px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .field {
+      min-width: 260px;
+      flex: 1;
+    }
+
+    label.title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #344054;
+      font-weight: 800;
+    }
+
+    .multi {
+      position: relative;
+    }
+
+    .multi-toggle {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .multi-toggle:hover {
+      border-color: #b9c6d8;
+    }
+
+    .multi-panel {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.16);
+      padding: 10px;
+      display: none;
+    }
+
+    .multi.open .multi-panel {
+      display: block;
+    }
+
+    .multi-actions {
+      display: flex;
+      gap: 8px;
+      padding: 4px 4px 10px;
+      border-bottom: 1px solid #eef2f7;
+      margin-bottom: 8px;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .option:hover {
+      background: #f3f6fb;
+    }
+
+    .option input {
+      width: 16px;
+      height: 16px;
+    }
+
+    .run-area {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 14px;
+      padding: 13px 20px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+      transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+    }
+
+    .btn:disabled {
+      background: #98a2b3;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .status {
+      margin-top: 18px;
+      background: #0f172a;
+      color: #dbeafe;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 112px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+
+    .status.error {
+      background: #2b0b0b;
+      color: #fecaca;
+    }
+
+    .status.success {
+      background: #06281a;
+      color: #bbf7d0;
+    }
+
+    .spec {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .spec strong {
+      color: var(--text);
+    }
+
+    code {
+      background: #eef2f7;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="badge">Excel × CSV Left Join</div>
+      <h1>ExcelのURL列にCSVの情報を結合して、xlsxで出力</h1>
+      <p class="lead">
+        左にExcel、右にCSVをアップロードしてください。Excelの <code>URL</code> とCSVの <code>入力URL</code> をkeyにしてleft joinし、
+        <code>SNS種別</code> に指定文字列を含む行だけを出力します。
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>1. Excelファイル</h2>
+        <p>左側データ。先頭シートの最上行をヘッダーとして読み込みます。key列は <code>URL</code> 固定です。</p>
+        <div class="drop" data-drop-target="excel">
+          <strong>Excelを選択</strong>
+          <input id="excelFile" class="file-input" type="file" accept=".xlsx,.xls" />
+          <div id="excelName" class="file-name">未選択</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. CSVファイル</h2>
+        <p>右側データ。UTF-8のCSVを想定しています。key列は <code>入力URL</code> 固定です。</p>
+        <div class="drop" data-drop-target="csv">
+          <strong>CSVを選択</strong>
+          <input id="csvFile" class="file-input" type="file" accept=".csv,text/csv" />
+          <div id="csvName" class="file-name">未選択</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card settings">
+      <div class="row">
+        <div class="field">
+          <label class="title">出力するSNS種別</label>
+          <div id="snsMulti" class="multi">
+            <button id="snsToggle" class="multi-toggle" type="button">
+              <span id="snsSummary">すべて選択中</span>
+              <span>▼</span>
+            </button>
+            <div id="snsPanel" class="multi-panel">
+              <div class="multi-actions">
+                <button id="selectAllSns" class="mini-btn" type="button">すべて選択</button>
+                <button id="clearSns" class="mini-btn" type="button">すべて解除</button>
+              </div>
+              <div id="snsOptions"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="title">結合条件</label>
+          <div class="note">
+            Excel: <code>URL</code> ／ CSV: <code>入力URL</code><br>
+            CSV側で同じkeyが複数ある場合は、最初に出てきた行だけを採用します。
+          </div>
+        </div>
+      </div>
+
+      <div class="run-area">
+        <button id="runBtn" class="btn" type="button">結合してExcel出力</button>
+        <div class="note">
+          ファイル内容はこのページ内で処理します。サーバーへのアップロード処理は入れていません。
+        </div>
+      </div>
+
+      <div id="status" class="status">ExcelとCSVを選択して、「結合してExcel出力」を押してください。</div>
+
+      <div class="spec">
+        <div><strong>出力列順：</strong>Excelの列 → CSVの列</div>
+        <div><strong>未突合行：</strong>CSV列は空欄のまま。ただし <code>SNS種別</code> が空欄になる行は、SNSフィルターにより通常は出力対象外になります。</div>
+        <div><strong>key比較：</strong>前後の空白だけ除去して完全一致。URL末尾スラッシュ統一、URLデコード、大文字小文字吸収などは未実装です。</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SheetJS: Excel read / xlsx write -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Papa Parse: CSV parse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+
+  <script>
+    (() => {
+      const EXCEL_KEY = "URL";
+      const CSV_KEY = "入力URL";
+      const FILTER_KEY = "SNS種別";
+
+      const SNS_OPTIONS = [
+        "YouTube",
+        "Facebook",
+        "X",
+        "Instagram",
+        "LINE",
+        "note",
+        "TikTok",
+        "LinkedIn"
+      ];
+
+      const els = {
+        excelFile: document.getElementById("excelFile"),
+        csvFile: document.getElementById("csvFile"),
+        excelName: document.getElementById("excelName"),
+        csvName: document.getElementById("csvName"),
+        runBtn: document.getElementById("runBtn"),
+        status: document.getElementById("status"),
+        snsMulti: document.getElementById("snsMulti"),
+        snsToggle: document.getElementById("snsToggle"),
+        snsSummary: document.getElementById("snsSummary"),
+        snsPanel: document.getElementById("snsPanel"),
+        snsOptions: document.getElementById("snsOptions"),
+        selectAllSns: document.getElementById("selectAllSns"),
+        clearSns: document.getElementById("clearSns")
+      };
+
+      function cleanHeader(value) {
+        return String(value ?? "")
+          .replace(/^\uFEFF/, "")
+          .trim();
+      }
+
+      function normalizeKey(value) {
+        return String(value ?? "").trim();
+      }
+
+      function setStatus(message, type = "") {
+        els.status.className = "status" + (type ? " " + type : "");
+        els.status.textContent = message;
+      }
+
+      function escapeForLog(value) {
+        return String(value ?? "").replace(/\n/g, "\\n");
+      }
+
+      function findDuplicates(values) {
+        const seen = new Set();
+        const dupes = new Set();
+
+        for (const value of values) {
+          if (seen.has(value)) dupes.add(value);
+          seen.add(value);
+        }
+
+        return [...dupes];
+      }
+
+      function requireHeaders(headers, requiredHeaders, fileLabel) {
+        const missing = requiredHeaders.filter(h => !headers.includes(h));
+        if (missing.length > 0) {
+          throw new Error(`${fileLabel}に必須ヘッダーがありません: ${missing.join(", ")}`);
+        }
+      }
+
+      function assertNoDuplicateHeaders(headers, fileLabel) {
+        const dupes = findDuplicates(headers.filter(Boolean));
+        if (dupes.length > 0) {
+          throw new Error(`${fileLabel}内に重複ヘッダーがあります: ${dupes.join(", ")}`);
+        }
+      }
+
+      function assertNoCrossDuplicateHeaders(excelHeaders, csvHeaders) {
+        const overlap = csvHeaders.filter(h => excelHeaders.includes(h));
+        if (overlap.length > 0) {
+          throw new Error(
+            "ExcelとCSVで重複しているヘッダーがあります。上書きを避けるため処理を停止しました: " +
+            overlap.join(", ")
+          );
+        }
+      }
+
+      function renderSnsOptions() {
+        els.snsOptions.innerHTML = "";
+
+        for (const option of SNS_OPTIONS) {
+          const id = `sns_${option.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
+          const label = document.createElement("label");
+          label.className = "option";
+          label.htmlFor = id;
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = id;
+          checkbox.value = option;
+          checkbox.checked = true;
+          checkbox.addEventListener("change", updateSnsSummary);
+
+          const span = document.createElement("span");
+          span.textContent = option;
+
+          label.appendChild(checkbox);
+          label.appendChild(span);
+          els.snsOptions.appendChild(label);
+        }
+
+        updateSnsSummary();
+      }
+
+      function getSelectedSnsTypes() {
+        return [...els.snsOptions.querySelectorAll('input[type="checkbox"]:checked')]
+          .map(input => input.value);
+      }
+
+      function updateSnsSummary() {
+        const selected = getSelectedSnsTypes();
+
+        if (selected.length === SNS_OPTIONS.length) {
+          els.snsSummary.textContent = "すべて選択中";
+        } else if (selected.length === 0) {
+          els.snsSummary.textContent = "未選択";
+        } else if (selected.length <= 3) {
+          els.snsSummary.textContent = selected.join(", ");
+        } else {
+          els.snsSummary.textContent = `${selected.length}件選択中`;
+        }
+      }
+
+      async function readExcel(file) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+        const firstSheetName = workbook.SheetNames[0];
+
+        if (!firstSheetName) {
+          throw new Error("Excelにシートが見つかりません。");
+        }
+
+        const sheet = workbook.Sheets[firstSheetName];
+        const aoa = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: "",
+          raw: false
+        });
+
+        if (!aoa.length) {
+          throw new Error("Excelの先頭シートが空です。");
+        }
+
+        const headers = aoa[0].map(cleanHeader);
+
+        if (headers.every(h => !h)) {
+          throw new Error("Excelのヘッダー行が空です。");
+        }
+
+        assertNoDuplicateHeaders(headers, "Excel");
+        requireHeaders(headers, [EXCEL_KEY], "Excel");
+
+        const rows = aoa.slice(1).map(rowArray => {
+          const row = {};
+          headers.forEach((header, index) => {
+            if (header) row[header] = rowArray[index] ?? "";
+          });
+          return row;
+        });
+
+        return {
+          sheetName: firstSheetName,
+          headers,
+          rows
+        };
+      }
+
+      function readCsv(file) {
+        return new Promise((resolve, reject) => {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: "greedy",
+            encoding: "UTF-8",
+            transformHeader: cleanHeader,
+            complete: results => {
+              const headers = (results.meta.fields || []).map(cleanHeader).filter(Boolean);
+
+              if (!headers.length) {
+                reject(new Error("CSVのヘッダー行が見つかりません。"));
+                return;
+              }
+
+              try {
+                assertNoDuplicateHeaders(headers, "CSV");
+                requireHeaders(headers, [CSV_KEY], "CSV");
+
+                const rows = (results.data || []).map(src => {
+                  const row = {};
+                  headers.forEach(header => {
+                    row[header] = src[header] ?? "";
+                  });
+                  return row;
+                });
+
+                resolve({
+                  headers,
+                  rows,
+                  errors: results.errors || []
+                });
+              } catch (error) {
+                reject(error);
+              }
+            },
+            error: error => {
+              reject(new Error("CSVの読み込みに失敗しました: " + error.message));
+            }
+          });
+        });
+      }
+
+      function buildCsvIndex(csvRows) {
+        const index = new Map();
+        let blankKeyCount = 0;
+        let duplicateKeyCount = 0;
+
+        for (const row of csvRows) {
+          const key = normalizeKey(row[CSV_KEY]);
+
+          if (!key) {
+            blankKeyCount++;
+            continue;
+          }
+
+          if (index.has(key)) {
+            duplicateKeyCount++;
+            continue;
+          }
+
+          index.set(key, row);
+        }
+
+        return {
+          index,
+          blankKeyCount,
+          duplicateKeyCount
+        };
+      }
+
+      function leftJoinRows(excelRows, csvIndex) {
+        let matchedCount = 0;
+        let unmatchedCount = 0;
+        let blankExcelKeyCount = 0;
+
+        const joinedRows = excelRows.map(excelRow => {
+          const key = normalizeKey(excelRow[EXCEL_KEY]);
+
+          if (!key) {
+            blankExcelKeyCount++;
+            unmatchedCount++;
+            return { ...excelRow };
+          }
+
+          const csvRow = csvIndex.get(key);
+
+          if (!csvRow) {
+            unmatchedCount++;
+            return { ...excelRow };
+          }
+
+          matchedCount++;
+          return {
+            ...excelRow,
+            ...csvRow
+          };
+        });
+
+        return {
+          joinedRows,
+          matchedCount,
+          unmatchedCount,
+          blankExcelKeyCount
+        };
+      }
+
+      function filterRowsBySns(joinedRows, selectedSnsTypes) {
+        if (selectedSnsTypes.length === 0) {
+          throw new Error("SNS種別を1つ以上選択してください。");
+        }
+
+        return joinedRows.filter(row => {
+          const value = String(row[FILTER_KEY] ?? "");
+          return selectedSnsTypes.some(type => value.includes(type));
+        });
+      }
+
+      function makeWorkbook(rows, headers) {
+        const aoa = [
+          headers,
+          ...rows.map(row => headers.map(header => row[header] ?? ""))
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+
+        if (worksheet["!ref"]) {
+          worksheet["!autofilter"] = { ref: worksheet["!ref"] };
+        }
+
+        worksheet["!cols"] = headers.map(header => ({
+          wch: Math.min(Math.max(String(header).length + 4, 12), 42)
+        }));
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "joined_filtered");
+
+        return workbook;
+      }
+
+      function downloadWorkbook(workbook, filename) {
+        const data = XLSX.write(workbook, {
+          bookType: "xlsx",
+          type: "array"
+        });
+
+        const blob = new Blob([data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function makeTimestamp() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, "0");
+
+        return [
+          d.getFullYear(),
+          pad(d.getMonth() + 1),
+          pad(d.getDate()),
+          "_",
+          pad(d.getHours()),
+          pad(d.getMinutes()),
+          pad(d.getSeconds())
+        ].join("");
+      }
+
+      async function run() {
+        try {
+          const excelFile = els.excelFile.files[0];
+          const csvFile = els.csvFile.files[0];
+
+          if (!excelFile) throw new Error("Excelファイルを選択してください。");
+          if (!csvFile) throw new Error("CSVファイルを選択してください。");
+
+          els.runBtn.disabled = true;
+          setStatus("読み込み中...");
+
+          const [excel, csv] = await Promise.all([
+            readExcel(excelFile),
+            readCsv(csvFile)
+          ]);
+
+          const allHeaders = [...excel.headers, ...csv.headers];
+
+          assertNoCrossDuplicateHeaders(excel.headers, csv.headers);
+          requireHeaders(allHeaders, [FILTER_KEY], "ExcelまたはCSV");
+
+          const csvIndexResult = buildCsvIndex(csv.rows);
+          const joinResult = leftJoinRows(excel.rows, csvIndexResult.index);
+          const selectedSnsTypes = getSelectedSnsTypes();
+          const filteredRows = filterRowsBySns(joinResult.joinedRows, selectedSnsTypes);
+
+          const workbook = makeWorkbook(filteredRows, allHeaders);
+          const filename = `left_join_filtered_${makeTimestamp()}.xlsx`;
+
+          downloadWorkbook(workbook, filename);
+
+          const csvErrorText = csv.errors.length
+            ? `\nCSV解析警告: ${csv.errors.length}件あります。必要に応じてCSV形式をご確認ください。`
+            : "";
+
+          setStatus(
+            [
+              "完了しました。",
+              "",
+              `Excelファイル: ${escapeForLog(excelFile.name)}`,
+              `Excel対象シート: ${escapeForLog(excel.sheetName)}`,
+              `Excel行数: ${excel.rows.length}`,
+              "",
+              `CSVファイル: ${escapeForLog(csvFile.name)}`,
+              `CSV行数: ${csv.rows.length}`,
+              `CSV有効key数: ${csvIndexResult.index.size}`,
+              `CSV空key行数: ${csvIndexResult.blankKeyCount}`,
+              `CSV重複key行数: ${csvIndexResult.duplicateKeyCount} ※最初の行のみ採用`,
+              "",
+              `JOIN成功行数: ${joinResult.matchedCount}`,
+              `JOIN未突合行数: ${joinResult.unmatchedCount}`,
+              `Excel空key行数: ${joinResult.blankExcelKeyCount}`,
+              "",
+              `SNSフィルター: ${selectedSnsTypes.join(", ")}`,
+              `出力行数: ${filteredRows.length}`,
+              `出力ファイル: ${filename}`,
+              csvErrorText
+            ].join("\n"),
+            "success"
+          );
+        } catch (error) {
+          setStatus("エラー: " + error.message, "error");
+        } finally {
+          els.runBtn.disabled = false;
+        }
+      }
+
+      function setupFileNameDisplay(input, labelEl) {
+        input.addEventListener("change", () => {
+          const file = input.files[0];
+          if (file) {
+            labelEl.textContent = file.name;
+            labelEl.classList.add("ok");
+          } else {
+            labelEl.textContent = "未選択";
+            labelEl.classList.remove("ok");
+          }
+        });
+      }
+
+      function setupDropArea() {
+        document.querySelectorAll(".drop").forEach(drop => {
+          const target = drop.dataset.dropTarget;
+          const input = target === "excel" ? els.excelFile : els.csvFile;
+
+          drop.addEventListener("dragover", event => {
+            event.preventDefault();
+            drop.classList.add("dragover");
+          });
+
+          drop.addEventListener("dragleave", () => {
+            drop.classList.remove("dragover");
+          });
+
+          drop.addEventListener("drop", event => {
+            event.preventDefault();
+            drop.classList.remove("dragover");
+
+            const file = event.dataTransfer.files[0];
+            if (!file) return;
+
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            input.dispatchEvent(new Event("change"));
+          });
+        });
+      }
+
+      function setupMultiSelect() {
+        renderSnsOptions();
+
+        els.snsToggle.addEventListener("click", event => {
+          event.stopPropagation();
+          els.snsMulti.classList.toggle("open");
+        });
+
+        els.snsPanel.addEventListener("click", event => {
+          event.stopPropagation();
+        });
+
+        document.addEventListener("click", () => {
+          els.snsMulti.classList.remove("open");
+        });
+
+        els.selectAllSns.addEventListener("click", () => {
+          els.snsOptions.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            input.checked = true;
+          });
+          updateSnsSummary();
+        });
+
+        els.clearSns.addEventListener("click", () => {
+          els.snsOptions.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            input.checked = false;
+          });
+          updateSnsSummary();
+        });
+      }
+
+      setupFileNameDisplay(els.excelFile, els.excelName);
+      setupFileNameDisplay(els.csvFile, els.csvName);
+      setupDropArea();
+      setupMultiSelect();
+
+      els.runBtn.addEventListener("click", run);
+    })();
+  </script>
+</body>
+</html>
