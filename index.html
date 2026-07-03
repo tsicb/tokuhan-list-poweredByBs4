@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Excel × CSV Left Join Tool</title>
+  <title>CSV × CSV Left Join Tool</title>
 
   <style>
     :root {
@@ -285,7 +285,7 @@
       color: #dbeafe;
       border-radius: 16px;
       padding: 16px;
-      min-height: 112px;
+      min-height: 132px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       white-space: pre-wrap;
       font-size: 13px;
@@ -329,32 +329,32 @@
 <body>
   <main class="page">
     <section class="hero">
-      <div class="badge">Excel × CSV Left Join</div>
-      <h1>ExcelのURL列にCSVの情報を結合して、xlsxで出力</h1>
+      <div class="badge">CSV × CSV Left Join</div>
+      <h1>左CSVのURL列に、右CSVの情報を結合してCSV出力</h1>
       <p class="lead">
-        左にExcel、右にCSVをアップロードしてください。Excelの <code>URL</code> とCSVの <code>入力URL</code> をkeyにしてleft joinし、
-        <code>SNS種別</code> に指定文字列を含む行だけを出力します。
+        左CSVの <code>URL</code> と右CSVの <code>入力URL</code> をkeyにしてleft joinします。
+        入力CSVはUTF-8 / Shift-JISを自動判定し、出力CSVはExcelで開きやすいUTF-8 BOM付きで保存します。
       </p>
     </section>
 
     <section class="grid">
       <div class="card">
-        <h2>1. Excelファイル</h2>
-        <p>左側データ。先頭シートの最上行をヘッダーとして読み込みます。key列は <code>URL</code> 固定です。</p>
-        <div class="drop" data-drop-target="excel">
-          <strong>Excelを選択</strong>
-          <input id="excelFile" class="file-input" type="file" accept=".xlsx,.xls" />
-          <div id="excelName" class="file-name">未選択</div>
+        <h2>1. 左CSVファイル</h2>
+        <p>left joinの左側データです。最上行をヘッダーとして読み込みます。key列は <code>URL</code> 固定です。</p>
+        <div class="drop" data-drop-target="left">
+          <strong>左CSVを選択</strong>
+          <input id="leftFile" class="file-input" type="file" accept=".csv,text/csv" />
+          <div id="leftName" class="file-name">未選択</div>
         </div>
       </div>
 
       <div class="card">
-        <h2>2. CSVファイル</h2>
-        <p>右側データ。UTF-8のCSVを想定しています。key列は <code>入力URL</code> 固定です。</p>
-        <div class="drop" data-drop-target="csv">
-          <strong>CSVを選択</strong>
-          <input id="csvFile" class="file-input" type="file" accept=".csv,text/csv" />
-          <div id="csvName" class="file-name">未選択</div>
+        <h2>2. 右CSVファイル</h2>
+        <p>結合する右側データです。最上行をヘッダーとして読み込みます。key列は <code>入力URL</code> 固定です。</p>
+        <div class="drop" data-drop-target="right">
+          <strong>右CSVを選択</strong>
+          <input id="rightFile" class="file-input" type="file" accept=".csv,text/csv" />
+          <div id="rightName" class="file-name">未選択</div>
         </div>
       </div>
     </section>
@@ -381,39 +381,38 @@
         <div class="field">
           <label class="title">結合条件</label>
           <div class="note">
-            Excel: <code>URL</code> ／ CSV: <code>入力URL</code><br>
-            CSV側で同じkeyが複数ある場合は、最初に出てきた行だけを採用します。
+            左CSV: <code>URL</code> ／ 右CSV: <code>入力URL</code><br>
+            右CSV側で同じkeyが複数ある場合は、最初に出てきた行だけを採用します。
           </div>
         </div>
       </div>
 
       <div class="run-area">
-        <button id="runBtn" class="btn" type="button">結合してExcel出力</button>
+        <button id="runBtn" class="btn" type="button">結合してCSV出力</button>
         <div class="note">
-          ファイル内容はこのページ内で処理します。サーバーへのアップロード処理は入れていません。
+          ファイル内容はブラウザ内で処理します。サーバーへのアップロード処理はありません。
         </div>
       </div>
 
-      <div id="status" class="status">ExcelとCSVを選択して、「結合してExcel出力」を押してください。</div>
+      <div id="status" class="status">左右のCSVを選択して、「結合してCSV出力」を押してください。</div>
 
       <div class="spec">
-        <div><strong>出力列順：</strong>Excelの列 → CSVの列</div>
-        <div><strong>未突合行：</strong>CSV列は空欄のまま。ただし <code>SNS種別</code> が空欄になる行は、SNSフィルターにより通常は出力対象外になります。</div>
-        <div><strong>key比較：</strong>前後の空白だけ除去して完全一致。URL末尾スラッシュ統一、URLデコード、大文字小文字吸収などは未実装です。</div>
+        <div><strong>入力文字コード：</strong>UTF-8 / UTF-8 BOM / Shift-JISを自動判定します。</div>
+        <div><strong>出力文字コード：</strong>UTF-8 BOM付きCSVです。</div>
+        <div><strong>出力列順：</strong>左CSVの列 → 右CSVの列です。</div>
+        <div><strong>未突合行：</strong>右CSV列は空欄のままです。ただし <code>SNS種別</code> が空欄になる行は、SNSフィルターにより通常は出力対象外になります。</div>
+        <div><strong>key比較：</strong>前後の空白だけ除去して完全一致します。URL末尾スラッシュ統一、URLデコード、大文字小文字吸収などは未実装です。</div>
       </div>
     </section>
   </main>
 
-  <!-- SheetJS: Excel read / xlsx write -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-
-  <!-- Papa Parse: CSV parse -->
+  <!-- CSV parse / unparse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
 
   <script>
     (() => {
-      const EXCEL_KEY = "URL";
-      const CSV_KEY = "入力URL";
+      const LEFT_KEY = "URL";
+      const RIGHT_KEY = "入力URL";
       const FILTER_KEY = "SNS種別";
 
       const SNS_OPTIONS = [
@@ -428,10 +427,10 @@
       ];
 
       const els = {
-        excelFile: document.getElementById("excelFile"),
-        csvFile: document.getElementById("csvFile"),
-        excelName: document.getElementById("excelName"),
-        csvName: document.getElementById("csvName"),
+        leftFile: document.getElementById("leftFile"),
+        rightFile: document.getElementById("rightFile"),
+        leftName: document.getElementById("leftName"),
+        rightName: document.getElementById("rightName"),
         runBtn: document.getElementById("runBtn"),
         status: document.getElementById("status"),
         snsMulti: document.getElementById("snsMulti"),
@@ -488,14 +487,174 @@
         }
       }
 
-      function assertNoCrossDuplicateHeaders(excelHeaders, csvHeaders) {
-        const overlap = csvHeaders.filter(h => excelHeaders.includes(h));
+      function assertNoCrossDuplicateHeaders(leftHeaders, rightHeaders) {
+        const overlap = rightHeaders.filter(h => leftHeaders.includes(h));
         if (overlap.length > 0) {
           throw new Error(
-            "ExcelとCSVで重複しているヘッダーがあります。上書きを避けるため処理を停止しました: " +
+            "左CSVと右CSVで重複しているヘッダーがあります。上書きを避けるため処理を停止しました: " +
             overlap.join(", ")
           );
         }
+      }
+
+      function hasUtf8Bom(bytes) {
+        return bytes.length >= 3 &&
+          bytes[0] === 0xEF &&
+          bytes[1] === 0xBB &&
+          bytes[2] === 0xBF;
+      }
+
+      function countReplacementChars(text) {
+        return (text.match(/\uFFFD/g) || []).length;
+      }
+
+      function countJapaneseChars(text) {
+        return (text.match(/[ぁ-んァ-ヶ一-龠]/g) || []).length;
+      }
+
+      function decodeWithEncoding(bytes, encoding, fatal = false) {
+        return new TextDecoder(encoding, { fatal }).decode(bytes);
+      }
+
+      function detectAndDecodeCsv(arrayBuffer) {
+        const bytes = new Uint8Array(arrayBuffer);
+
+        if (hasUtf8Bom(bytes)) {
+          return {
+            text: decodeWithEncoding(bytes, "utf-8", false).replace(/^\uFEFF/, ""),
+            encoding: "UTF-8 BOM"
+          };
+        }
+
+        try {
+          const utf8Text = decodeWithEncoding(bytes, "utf-8", true);
+          return {
+            text: utf8Text.replace(/^\uFEFF/, ""),
+            encoding: "UTF-8"
+          };
+        } catch (_) {
+          const sjisText = decodeWithEncoding(bytes, "shift_jis", false);
+          return {
+            text: sjisText.replace(/^\uFEFF/, ""),
+            encoding: "Shift-JIS"
+          };
+        }
+      }
+
+      /*
+        補足:
+        通常の日本語Shift-JISはUTF-8として読むとエラーになりやすいため、
+        まずUTF-8の厳格判定を行い、失敗した場合にShift-JISとして読みます。
+        ASCIIのみのCSVはUTF-8として扱われますが、内容に差は出ません。
+      */
+      async function readCsvFile(file, fileLabel, requiredKey) {
+        const arrayBuffer = await file.arrayBuffer();
+        const decoded = detectAndDecodeCsv(arrayBuffer);
+
+        const results = Papa.parse(decoded.text, {
+          header: true,
+          skipEmptyLines: "greedy",
+          transformHeader: cleanHeader
+        });
+
+        if (results.errors && results.errors.length > 0) {
+          const severe = results.errors.find(e => e.type === "Quotes" || e.code === "MissingQuotes");
+          if (severe) {
+            throw new Error(
+              `${fileLabel}のCSV形式に問題があります。引用符の閉じ忘れなどをご確認ください。` +
+              ` 詳細: ${severe.message}`
+            );
+          }
+        }
+
+        const headers = (results.meta.fields || []).map(cleanHeader).filter(Boolean);
+
+        if (!headers.length) {
+          throw new Error(`${fileLabel}のヘッダー行が見つかりません。`);
+        }
+
+        assertNoDuplicateHeaders(headers, fileLabel);
+        requireHeaders(headers, [requiredKey], fileLabel);
+
+        const rows = (results.data || []).map(src => {
+          const row = {};
+          headers.forEach(header => {
+            row[header] = src[header] ?? "";
+          });
+          return row;
+        });
+
+        return {
+          headers,
+          rows,
+          encoding: decoded.encoding,
+          parseErrors: results.errors || []
+        };
+      }
+
+      function buildRightCsvIndex(rightRows) {
+        const index = new Map();
+        let blankKeyCount = 0;
+        let duplicateKeyCount = 0;
+
+        for (const row of rightRows) {
+          const key = normalizeKey(row[RIGHT_KEY]);
+
+          if (!key) {
+            blankKeyCount++;
+            continue;
+          }
+
+          if (index.has(key)) {
+            duplicateKeyCount++;
+            continue;
+          }
+
+          index.set(key, row);
+        }
+
+        return {
+          index,
+          blankKeyCount,
+          duplicateKeyCount
+        };
+      }
+
+      function leftJoinRows(leftRows, rightIndex) {
+        let matchedCount = 0;
+        let unmatchedCount = 0;
+        let blankLeftKeyCount = 0;
+
+        const joinedRows = leftRows.map(leftRow => {
+          const key = normalizeKey(leftRow[LEFT_KEY]);
+
+          if (!key) {
+            blankLeftKeyCount++;
+            unmatchedCount++;
+            return { ...leftRow };
+          }
+
+          const rightRow = rightIndex.get(key);
+
+          if (!rightRow) {
+            unmatchedCount++;
+            return { ...leftRow };
+          }
+
+          matchedCount++;
+
+          return {
+            ...leftRow,
+            ...rightRow
+          };
+        });
+
+        return {
+          joinedRows,
+          matchedCount,
+          unmatchedCount,
+          blankLeftKeyCount
+        };
       }
 
       function renderSnsOptions() {
@@ -545,157 +704,6 @@
         }
       }
 
-      async function readExcel(file) {
-        const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
-        const firstSheetName = workbook.SheetNames[0];
-
-        if (!firstSheetName) {
-          throw new Error("Excelにシートが見つかりません。");
-        }
-
-        const sheet = workbook.Sheets[firstSheetName];
-        const aoa = XLSX.utils.sheet_to_json(sheet, {
-          header: 1,
-          defval: "",
-          raw: false
-        });
-
-        if (!aoa.length) {
-          throw new Error("Excelの先頭シートが空です。");
-        }
-
-        const headers = aoa[0].map(cleanHeader);
-
-        if (headers.every(h => !h)) {
-          throw new Error("Excelのヘッダー行が空です。");
-        }
-
-        assertNoDuplicateHeaders(headers, "Excel");
-        requireHeaders(headers, [EXCEL_KEY], "Excel");
-
-        const rows = aoa.slice(1).map(rowArray => {
-          const row = {};
-          headers.forEach((header, index) => {
-            if (header) row[header] = rowArray[index] ?? "";
-          });
-          return row;
-        });
-
-        return {
-          sheetName: firstSheetName,
-          headers,
-          rows
-        };
-      }
-
-      function readCsv(file) {
-        return new Promise((resolve, reject) => {
-          Papa.parse(file, {
-            header: true,
-            skipEmptyLines: "greedy",
-            encoding: "UTF-8",
-            transformHeader: cleanHeader,
-            complete: results => {
-              const headers = (results.meta.fields || []).map(cleanHeader).filter(Boolean);
-
-              if (!headers.length) {
-                reject(new Error("CSVのヘッダー行が見つかりません。"));
-                return;
-              }
-
-              try {
-                assertNoDuplicateHeaders(headers, "CSV");
-                requireHeaders(headers, [CSV_KEY], "CSV");
-
-                const rows = (results.data || []).map(src => {
-                  const row = {};
-                  headers.forEach(header => {
-                    row[header] = src[header] ?? "";
-                  });
-                  return row;
-                });
-
-                resolve({
-                  headers,
-                  rows,
-                  errors: results.errors || []
-                });
-              } catch (error) {
-                reject(error);
-              }
-            },
-            error: error => {
-              reject(new Error("CSVの読み込みに失敗しました: " + error.message));
-            }
-          });
-        });
-      }
-
-      function buildCsvIndex(csvRows) {
-        const index = new Map();
-        let blankKeyCount = 0;
-        let duplicateKeyCount = 0;
-
-        for (const row of csvRows) {
-          const key = normalizeKey(row[CSV_KEY]);
-
-          if (!key) {
-            blankKeyCount++;
-            continue;
-          }
-
-          if (index.has(key)) {
-            duplicateKeyCount++;
-            continue;
-          }
-
-          index.set(key, row);
-        }
-
-        return {
-          index,
-          blankKeyCount,
-          duplicateKeyCount
-        };
-      }
-
-      function leftJoinRows(excelRows, csvIndex) {
-        let matchedCount = 0;
-        let unmatchedCount = 0;
-        let blankExcelKeyCount = 0;
-
-        const joinedRows = excelRows.map(excelRow => {
-          const key = normalizeKey(excelRow[EXCEL_KEY]);
-
-          if (!key) {
-            blankExcelKeyCount++;
-            unmatchedCount++;
-            return { ...excelRow };
-          }
-
-          const csvRow = csvIndex.get(key);
-
-          if (!csvRow) {
-            unmatchedCount++;
-            return { ...excelRow };
-          }
-
-          matchedCount++;
-          return {
-            ...excelRow,
-            ...csvRow
-          };
-        });
-
-        return {
-          joinedRows,
-          matchedCount,
-          unmatchedCount,
-          blankExcelKeyCount
-        };
-      }
-
       function filterRowsBySns(joinedRows, selectedSnsTypes) {
         if (selectedSnsTypes.length === 0) {
           throw new Error("SNS種別を1つ以上選択してください。");
@@ -707,36 +715,25 @@
         });
       }
 
-      function makeWorkbook(rows, headers) {
-        const aoa = [
-          headers,
-          ...rows.map(row => headers.map(header => row[header] ?? ""))
-        ];
-
-        const worksheet = XLSX.utils.aoa_to_sheet(aoa);
-
-        if (worksheet["!ref"]) {
-          worksheet["!autofilter"] = { ref: worksheet["!ref"] };
-        }
-
-        worksheet["!cols"] = headers.map(header => ({
-          wch: Math.min(Math.max(String(header).length + 4, 12), 42)
-        }));
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "joined_filtered");
-
-        return workbook;
+      function makeCsvText(rows, headers) {
+        return Papa.unparse({
+          fields: headers,
+          data: rows.map(row => headers.map(header => row[header] ?? ""))
+        }, {
+          quotes: false,
+          quoteChar: '"',
+          escapeChar: '"',
+          delimiter: ",",
+          header: true,
+          newline: "\r\n",
+          skipEmptyLines: false
+        });
       }
 
-      function downloadWorkbook(workbook, filename) {
-        const data = XLSX.write(workbook, {
-          bookType: "xlsx",
-          type: "array"
-        });
-
-        const blob = new Blob([data], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      function downloadUtf8BomCsv(csvText, filename) {
+        const bom = "\uFEFF";
+        const blob = new Blob([bom + csvText], {
+          type: "text/csv;charset=utf-8"
         });
 
         const url = URL.createObjectURL(blob);
@@ -768,61 +765,70 @@
 
       async function run() {
         try {
-          const excelFile = els.excelFile.files[0];
-          const csvFile = els.csvFile.files[0];
+          const leftFile = els.leftFile.files[0];
+          const rightFile = els.rightFile.files[0];
 
-          if (!excelFile) throw new Error("Excelファイルを選択してください。");
-          if (!csvFile) throw new Error("CSVファイルを選択してください。");
+          if (!leftFile) throw new Error("左CSVファイルを選択してください。");
+          if (!rightFile) throw new Error("右CSVファイルを選択してください。");
 
           els.runBtn.disabled = true;
           setStatus("読み込み中...");
 
-          const [excel, csv] = await Promise.all([
-            readExcel(excelFile),
-            readCsv(csvFile)
+          const [leftCsv, rightCsv] = await Promise.all([
+            readCsvFile(leftFile, "左CSV", LEFT_KEY),
+            readCsvFile(rightFile, "右CSV", RIGHT_KEY)
           ]);
 
-          const allHeaders = [...excel.headers, ...csv.headers];
+          assertNoCrossDuplicateHeaders(leftCsv.headers, rightCsv.headers);
 
-          assertNoCrossDuplicateHeaders(excel.headers, csv.headers);
-          requireHeaders(allHeaders, [FILTER_KEY], "ExcelまたはCSV");
+          const allHeaders = [...leftCsv.headers, ...rightCsv.headers];
 
-          const csvIndexResult = buildCsvIndex(csv.rows);
-          const joinResult = leftJoinRows(excel.rows, csvIndexResult.index);
+          requireHeaders(allHeaders, [FILTER_KEY], "左CSVまたは右CSV");
+
+          const rightIndexResult = buildRightCsvIndex(rightCsv.rows);
+          const joinResult = leftJoinRows(leftCsv.rows, rightIndexResult.index);
+
           const selectedSnsTypes = getSelectedSnsTypes();
           const filteredRows = filterRowsBySns(joinResult.joinedRows, selectedSnsTypes);
 
-          const workbook = makeWorkbook(filteredRows, allHeaders);
-          const filename = `left_join_filtered_${makeTimestamp()}.xlsx`;
+          const csvText = makeCsvText(filteredRows, allHeaders);
+          const filename = `left_join_filtered_${makeTimestamp()}.csv`;
 
-          downloadWorkbook(workbook, filename);
+          downloadUtf8BomCsv(csvText, filename);
 
-          const csvErrorText = csv.errors.length
-            ? `\nCSV解析警告: ${csv.errors.length}件あります。必要に応じてCSV形式をご確認ください。`
+          const leftParseWarningText = leftCsv.parseErrors.length
+            ? `\n左CSV解析警告: ${leftCsv.parseErrors.length}件`
+            : "";
+
+          const rightParseWarningText = rightCsv.parseErrors.length
+            ? `\n右CSV解析警告: ${rightCsv.parseErrors.length}件`
             : "";
 
           setStatus(
             [
               "完了しました。",
               "",
-              `Excelファイル: ${escapeForLog(excelFile.name)}`,
-              `Excel対象シート: ${escapeForLog(excel.sheetName)}`,
-              `Excel行数: ${excel.rows.length}`,
+              `左CSVファイル: ${escapeForLog(leftFile.name)}`,
+              `左CSV判定文字コード: ${leftCsv.encoding}`,
+              `左CSV行数: ${leftCsv.rows.length}`,
               "",
-              `CSVファイル: ${escapeForLog(csvFile.name)}`,
-              `CSV行数: ${csv.rows.length}`,
-              `CSV有効key数: ${csvIndexResult.index.size}`,
-              `CSV空key行数: ${csvIndexResult.blankKeyCount}`,
-              `CSV重複key行数: ${csvIndexResult.duplicateKeyCount} ※最初の行のみ採用`,
+              `右CSVファイル: ${escapeForLog(rightFile.name)}`,
+              `右CSV判定文字コード: ${rightCsv.encoding}`,
+              `右CSV行数: ${rightCsv.rows.length}`,
+              `右CSV有効key数: ${rightIndexResult.index.size}`,
+              `右CSV空key行数: ${rightIndexResult.blankKeyCount}`,
+              `右CSV重複key行数: ${rightIndexResult.duplicateKeyCount} ※最初の行のみ採用`,
               "",
               `JOIN成功行数: ${joinResult.matchedCount}`,
               `JOIN未突合行数: ${joinResult.unmatchedCount}`,
-              `Excel空key行数: ${joinResult.blankExcelKeyCount}`,
+              `左CSV空key行数: ${joinResult.blankLeftKeyCount}`,
               "",
               `SNSフィルター: ${selectedSnsTypes.join(", ")}`,
               `出力行数: ${filteredRows.length}`,
+              `出力文字コード: UTF-8 BOM`,
               `出力ファイル: ${filename}`,
-              csvErrorText
+              leftParseWarningText,
+              rightParseWarningText
             ].join("\n"),
             "success"
           );
@@ -836,6 +842,7 @@
       function setupFileNameDisplay(input, labelEl) {
         input.addEventListener("change", () => {
           const file = input.files[0];
+
           if (file) {
             labelEl.textContent = file.name;
             labelEl.classList.add("ok");
@@ -849,7 +856,7 @@
       function setupDropArea() {
         document.querySelectorAll(".drop").forEach(drop => {
           const target = drop.dataset.dropTarget;
-          const input = target === "excel" ? els.excelFile : els.csvFile;
+          const input = target === "left" ? els.leftFile : els.rightFile;
 
           drop.addEventListener("dragover", event => {
             event.preventDefault();
@@ -906,8 +913,8 @@
         });
       }
 
-      setupFileNameDisplay(els.excelFile, els.excelName);
-      setupFileNameDisplay(els.csvFile, els.csvName);
+      setupFileNameDisplay(els.leftFile, els.leftName);
+      setupFileNameDisplay(els.rightFile, els.rightName);
       setupDropArea();
       setupMultiSelect();
 
