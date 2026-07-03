@@ -3,21 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CSV × CSV Left Join Tool</title>
+  <title>サスケCSV結合ツール</title>
 
   <style>
     :root {
-      --bg: #f6f8fb;
+      --bg: #fff5f8;
+      --bg2: #ffe8f0;
       --card: #ffffff;
-      --text: #172033;
-      --muted: #667085;
-      --line: #d9e1ec;
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
+      --text: #3b2030;
+      --muted: #866273;
+      --line: #f4c6d8;
+      --primary: #ec4899;
+      --primary-dark: #db2777;
+      --primary-soft: #fce7f3;
       --danger: #dc2626;
       --success: #16a34a;
-      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-      --radius: 18px;
+      --shadow: 0 18px 45px rgba(157, 23, 77, 0.12);
+      --radius: 22px;
     }
 
     * {
@@ -28,46 +30,76 @@
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 34%),
-        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+        radial-gradient(circle at top left, rgba(236, 72, 153, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(251, 113, 133, 0.16), transparent 34%),
+        linear-gradient(180deg, #fff8fb 0%, var(--bg) 100%);
       color: var(--text);
+      min-height: 100vh;
     }
 
     .page {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 36px 20px 56px;
+      padding: 34px 20px 56px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .settings-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(244, 198, 216, 0.95);
+      background: rgba(255, 255, 255, 0.82);
+      color: #9d174d;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 22px;
+      box-shadow: 0 12px 26px rgba(157, 23, 77, 0.1);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .settings-btn:hover {
+      transform: translateY(-1px) rotate(12deg);
+      background: #fff;
+      box-shadow: 0 16px 34px rgba(157, 23, 77, 0.16);
     }
 
     .hero {
-      margin-bottom: 24px;
+      text-align: center;
+      margin-bottom: 26px;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 12px;
+      padding: 7px 13px;
       border-radius: 999px;
-      background: #eaf1ff;
-      color: #1e40af;
+      background: var(--primary-soft);
+      color: #be185d;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 14px;
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: clamp(26px, 4vw, 42px);
-      letter-spacing: -0.04em;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.045em;
       line-height: 1.12;
     }
 
     .lead {
-      margin: 0;
+      margin: 0 auto;
       color: var(--muted);
       line-height: 1.8;
       font-size: 15px;
+      max-width: 720px;
     }
 
     .grid {
@@ -85,7 +117,7 @@
 
     .card {
       background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(217, 225, 236, 0.9);
+      border: 1px solid rgba(244, 198, 216, 0.92);
       box-shadow: var(--shadow);
       border-radius: var(--radius);
       padding: 22px;
@@ -94,6 +126,7 @@
     .card h2 {
       margin: 0 0 8px;
       font-size: 18px;
+      color: #831843;
     }
 
     .card p {
@@ -105,15 +138,15 @@
 
     .drop {
       border: 2px dashed var(--line);
-      background: #fbfdff;
-      border-radius: 16px;
+      background: #fff9fb;
+      border-radius: 18px;
       padding: 22px;
       transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
     }
 
     .drop.dragover {
       border-color: var(--primary);
-      background: #eef5ff;
+      background: #fdf2f8;
       transform: translateY(-1px);
     }
 
@@ -133,7 +166,7 @@
 
     .file-name.ok {
       color: var(--success);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .settings {
@@ -157,8 +190,8 @@
       display: block;
       margin-bottom: 8px;
       font-size: 13px;
-      color: #344054;
-      font-weight: 800;
+      color: #831843;
+      font-weight: 900;
     }
 
     .multi {
@@ -170,8 +203,8 @@
       border: 1px solid var(--line);
       background: #fff;
       color: var(--text);
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 14px;
+      padding: 13px 14px;
       text-align: left;
       font-size: 14px;
       cursor: pointer;
@@ -182,7 +215,7 @@
     }
 
     .multi-toggle:hover {
-      border-color: #b9c6d8;
+      border-color: #f0a8c7;
     }
 
     .multi-panel {
@@ -193,8 +226,8 @@
       right: 0;
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.16);
+      border-radius: 16px;
+      box-shadow: 0 22px 50px rgba(157, 23, 77, 0.18);
       padding: 10px;
       display: none;
     }
@@ -207,17 +240,19 @@
       display: flex;
       gap: 8px;
       padding: 4px 4px 10px;
-      border-bottom: 1px solid #eef2f7;
+      border-bottom: 1px solid #fce7f3;
       margin-bottom: 8px;
     }
 
     .mini-btn {
       border: 1px solid var(--line);
-      background: #f8fafc;
+      background: #fff7fb;
+      color: #9d174d;
       border-radius: 999px;
       padding: 6px 10px;
       font-size: 12px;
       cursor: pointer;
+      font-weight: 700;
     }
 
     .option {
@@ -231,12 +266,13 @@
     }
 
     .option:hover {
-      background: #f3f6fb;
+      background: #fdf2f8;
     }
 
     .option input {
       width: 16px;
       height: 16px;
+      accent-color: var(--primary);
     }
 
     .run-area {
@@ -249,28 +285,41 @@
 
     .btn {
       border: none;
-      background: var(--primary);
+      background: linear-gradient(135deg, #ec4899, #fb7185);
       color: #fff;
-      border-radius: 14px;
-      padding: 13px 20px;
-      font-weight: 800;
+      border-radius: 16px;
+      padding: 14px 22px;
+      font-weight: 900;
       font-size: 15px;
       cursor: pointer;
-      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
-      transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+      box-shadow: 0 14px 28px rgba(236, 72, 153, 0.26);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
     }
 
     .btn:hover {
-      background: var(--primary-dark);
       transform: translateY(-1px);
-      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+      box-shadow: 0 18px 34px rgba(236, 72, 153, 0.32);
+      filter: brightness(0.98);
     }
 
     .btn:disabled {
-      background: #98a2b3;
+      background: #c9a4b4;
       box-shadow: none;
       cursor: not-allowed;
       transform: none;
+    }
+
+    .front-result {
+      margin-top: 16px;
+      min-height: 24px;
+      color: #831843;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.7;
+    }
+
+    .front-result.error {
+      color: var(--danger);
     }
 
     .note {
@@ -279,80 +328,163 @@
       line-height: 1.6;
     }
 
-    .status {
-      margin-top: 18px;
-      background: #0f172a;
-      color: #dbeafe;
-      border-radius: 16px;
-      padding: 16px;
-      min-height: 132px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      white-space: pre-wrap;
-      font-size: 13px;
-      line-height: 1.7;
-      overflow-x: auto;
-    }
-
-    .status.error {
-      background: #2b0b0b;
-      color: #fecaca;
-    }
-
-    .status.success {
-      background: #06281a;
-      color: #bbf7d0;
-    }
-
-    .spec {
-      margin-top: 18px;
-      display: grid;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    .spec strong {
-      color: var(--text);
-    }
-
     code {
-      background: #eef2f7;
+      background: #fce7f3;
+      color: #831843;
       padding: 2px 6px;
       border-radius: 6px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 0.95em;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(59, 32, 48, 0.48);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(860px, 100%);
+      max-height: min(82vh, 780px);
+      overflow: hidden;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 28px 80px rgba(59, 32, 48, 0.28);
+      border: 1px solid rgba(244, 198, 216, 0.96);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #fce7f3;
+      background: linear-gradient(135deg, #fff7fb, #fff);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      color: #831843;
+      font-size: 18px;
+    }
+
+    .close-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #9d174d;
+      border-radius: 999px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .modal-section {
+      margin-bottom: 22px;
+    }
+
+    .modal-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-section h3 {
+      margin: 0 0 8px;
+      color: #9d174d;
+      font-size: 15px;
+    }
+
+    .modal-section p,
+    .modal-section li {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .modal-section ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    .tech-log {
+      background: #3b2030;
+      color: #ffe4ef;
+      border-radius: 16px;
+      padding: 15px;
+      min-height: 140px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      background: #fce7f3;
+      color: #9d174d;
+      border: 1px solid #fbcfe8;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
     }
   </style>
 </head>
 
 <body>
   <main class="page">
+    <div class="topbar">
+      <button id="settingsBtn" class="settings-btn" type="button" aria-label="詳しい設定を開く">⚙</button>
+    </div>
+
     <section class="hero">
-      <div class="badge">CSV × CSV Left Join</div>
-      <h1>左CSVのURL列に、右CSVの情報を結合してCSV出力</h1>
+      <div class="badge">CSVまとめツール</div>
+      <h1>サスケCSVに企業HP調査データを追加</h1>
       <p class="lead">
-        左CSVの <code>URL</code> と右CSVの <code>入力URL</code> をkeyにしてleft joinします。
-        入力CSVはUTF-8 / Shift-JISを自動判定し、出力CSVはExcelで開きやすいUTF-8 BOM付きで保存します。
+        2つのCSVを選んで、出力したいSNSを選択してください。できあがったCSVをそのままダウンロードできます。
       </p>
     </section>
 
     <section class="grid">
       <div class="card">
-        <h2>1. 左CSVファイル</h2>
-        <p>left joinの左側データです。最上行をヘッダーとして読み込みます。key列は <code>URL</code> 固定です。</p>
+        <h2>1. サスケCSV</h2>
+        <p>先にこちらのCSVを選択してください。</p>
         <div class="drop" data-drop-target="left">
-          <strong>左CSVを選択</strong>
+          <strong>サスケCSVを選択</strong>
           <input id="leftFile" class="file-input" type="file" accept=".csv,text/csv" />
           <div id="leftName" class="file-name">未選択</div>
         </div>
       </div>
 
       <div class="card">
-        <h2>2. 右CSVファイル</h2>
-        <p>結合する右側データです。最上行をヘッダーとして読み込みます。key列は <code>入力URL</code> 固定です。</p>
+        <h2>2. 企業HPまるっと調査CSV</h2>
+        <p>追加したい調査結果CSVを選択してください。</p>
         <div class="drop" data-drop-target="right">
-          <strong>右CSVを選択</strong>
+          <strong>企業HPまるっと調査CSVを選択</strong>
           <input id="rightFile" class="file-input" type="file" accept=".csv,text/csv" />
           <div id="rightName" class="file-name">未選択</div>
         </div>
@@ -362,7 +494,7 @@
     <section class="card settings">
       <div class="row">
         <div class="field">
-          <label class="title">出力するSNS種別</label>
+          <label class="title">出力したいSNS</label>
           <div id="snsMulti" class="multi">
             <button id="snsToggle" class="multi-toggle" type="button">
               <span id="snsSummary">すべて選択中</span>
@@ -379,34 +511,70 @@
         </div>
 
         <div class="field">
-          <label class="title">結合条件</label>
+          <label class="title">作成するCSV</label>
           <div class="note">
-            左CSV: <code>URL</code> ／ 右CSV: <code>入力URL</code><br>
-            右CSV側で同じkeyが複数ある場合は、最初に出てきた行だけを採用します。
+            選択したSNSを含む行だけを残して、サスケCSVに調査結果を追加します。
           </div>
         </div>
       </div>
 
       <div class="run-area">
-        <button id="runBtn" class="btn" type="button">結合してCSV出力</button>
-        <div class="note">
-          ファイル内容はブラウザ内で処理します。サーバーへのアップロード処理はありません。
-        </div>
+        <button id="runBtn" class="btn" type="button">CSVを作成する</button>
+        <div class="note">CSVはこの画面内だけで処理します。</div>
       </div>
 
-      <div id="status" class="status">左右のCSVを選択して、「結合してCSV出力」を押してください。</div>
-
-      <div class="spec">
-        <div><strong>入力文字コード：</strong>UTF-8 / UTF-8 BOM / Shift-JISを自動判定します。</div>
-        <div><strong>出力文字コード：</strong>UTF-8 BOM付きCSVです。</div>
-        <div><strong>出力列順：</strong>左CSVの列 → 右CSVの列です。</div>
-        <div><strong>未突合行：</strong>右CSV列は空欄のままです。ただし <code>SNS種別</code> が空欄になる行は、SNSフィルターにより通常は出力対象外になります。</div>
-        <div><strong>key比較：</strong>前後の空白だけ除去して完全一致します。URL末尾スラッシュ統一、URLデコード、大文字小文字吸収などは未実装です。</div>
-      </div>
+      <div id="frontResult" class="front-result">CSVを2つ選択してください。</div>
     </section>
   </main>
 
-  <!-- CSV parse / unparse -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">詳しい設定・説明</h2>
+        <button id="modalClose" class="close-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="modal-body">
+        <section class="modal-section">
+          <h3>このツールの処理内容</h3>
+          <p>
+            サスケCSVを左側、企業HPまるっと調査CSVを右側として、left joinします。
+            サスケCSVの <code>URL</code> と、企業HPまるっと調査CSVの <code>入力URL</code> が一致した場合に、
+            企業HPまるっと調査CSVの情報をサスケCSVの右側へ追加します。
+          </p>
+          <ul>
+            <li>企業HPまるっと調査CSVに同じ <code>入力URL</code> が複数ある場合は、最も上の行だけを使います。</li>
+            <li>サスケCSVに同じ <code>URL</code> が複数ある場合は、そのすべての行に調査結果を追加します。</li>
+            <li>一致しない行は、調査結果の列が空欄のままになります。</li>
+            <li>最後に <code>SNS種別</code> の値を見て、選択したSNSを含む行だけを出力します。</li>
+          </ul>
+        </section>
+
+        <section class="modal-section">
+          <h3>文字コードについて</h3>
+          <p>
+            入力CSVはUTF-8、UTF-8 BOM、Shift-JISを自動判定します。
+            出力CSVは、日本語をExcelで開きやすいようにUTF-8 BOM付きで作成します。
+          </p>
+        </section>
+
+        <section class="modal-section">
+          <h3>固定している列名</h3>
+          <div class="pill-list">
+            <span class="pill">サスケCSV：URL</span>
+            <span class="pill">企業HPまるっと調査CSV：入力URL</span>
+            <span class="pill">絞り込み：SNS種別</span>
+          </div>
+        </section>
+
+        <section class="modal-section">
+          <h3>処理ログ</h3>
+          <div id="techLog" class="tech-log">まだ処理していません。</div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
 
   <script>
@@ -432,14 +600,18 @@
         leftName: document.getElementById("leftName"),
         rightName: document.getElementById("rightName"),
         runBtn: document.getElementById("runBtn"),
-        status: document.getElementById("status"),
+        frontResult: document.getElementById("frontResult"),
+        techLog: document.getElementById("techLog"),
         snsMulti: document.getElementById("snsMulti"),
         snsToggle: document.getElementById("snsToggle"),
         snsSummary: document.getElementById("snsSummary"),
         snsPanel: document.getElementById("snsPanel"),
         snsOptions: document.getElementById("snsOptions"),
         selectAllSns: document.getElementById("selectAllSns"),
-        clearSns: document.getElementById("clearSns")
+        clearSns: document.getElementById("clearSns"),
+        settingsBtn: document.getElementById("settingsBtn"),
+        modalBackdrop: document.getElementById("modalBackdrop"),
+        modalClose: document.getElementById("modalClose")
       };
 
       function cleanHeader(value) {
@@ -452,9 +624,13 @@
         return String(value ?? "").trim();
       }
 
-      function setStatus(message, type = "") {
-        els.status.className = "status" + (type ? " " + type : "");
-        els.status.textContent = message;
+      function setFrontResult(message, type = "") {
+        els.frontResult.className = "front-result" + (type ? " " + type : "");
+        els.frontResult.textContent = message;
+      }
+
+      function setTechLog(message) {
+        els.techLog.textContent = message;
       }
 
       function escapeForLog(value) {
@@ -491,7 +667,7 @@
         const overlap = rightHeaders.filter(h => leftHeaders.includes(h));
         if (overlap.length > 0) {
           throw new Error(
-            "左CSVと右CSVで重複しているヘッダーがあります。上書きを避けるため処理を停止しました: " +
+            "サスケCSVと企業HPまるっと調査CSVで重複しているヘッダーがあります。上書きを避けるため処理を停止しました: " +
             overlap.join(", ")
           );
         }
@@ -502,14 +678,6 @@
           bytes[0] === 0xEF &&
           bytes[1] === 0xBB &&
           bytes[2] === 0xBF;
-      }
-
-      function countReplacementChars(text) {
-        return (text.match(/\uFFFD/g) || []).length;
-      }
-
-      function countJapaneseChars(text) {
-        return (text.match(/[ぁ-んァ-ヶ一-龠]/g) || []).length;
       }
 
       function decodeWithEncoding(bytes, encoding, fatal = false) {
@@ -541,12 +709,6 @@
         }
       }
 
-      /*
-        補足:
-        通常の日本語Shift-JISはUTF-8として読むとエラーになりやすいため、
-        まずUTF-8の厳格判定を行い、失敗した場合にShift-JISとして読みます。
-        ASCIIのみのCSVはUTF-8として扱われますが、内容に差は出ません。
-      */
       async function readCsvFile(file, fileLabel, requiredKey) {
         const arrayBuffer = await file.arrayBuffer();
         const decoded = detectAndDecodeCsv(arrayBuffer);
@@ -620,7 +782,7 @@
         };
       }
 
-      function leftJoinRows(leftRows, rightIndex) {
+      function joinRows(leftRows, rightIndex) {
         let matchedCount = 0;
         let unmatchedCount = 0;
         let blankLeftKeyCount = 0;
@@ -706,7 +868,7 @@
 
       function filterRowsBySns(joinedRows, selectedSnsTypes) {
         if (selectedSnsTypes.length === 0) {
-          throw new Error("SNS種別を1つ以上選択してください。");
+          throw new Error("出力したいSNSを1つ以上選択してください。");
         }
 
         return joinedRows.filter(row => {
@@ -763,77 +925,101 @@
         ].join("");
       }
 
+      function makeDetailedLog({
+        leftFile,
+        rightFile,
+        leftCsv,
+        rightCsv,
+        rightIndexResult,
+        joinResult,
+        selectedSnsTypes,
+        filteredRows,
+        filename
+      }) {
+        const leftParseWarningText = leftCsv.parseErrors.length
+          ? `\nサスケCSV解析警告: ${leftCsv.parseErrors.length}件`
+          : "";
+
+        const rightParseWarningText = rightCsv.parseErrors.length
+          ? `\n企業HPまるっと調査CSV解析警告: ${rightCsv.parseErrors.length}件`
+          : "";
+
+        return [
+          "完了しました。",
+          "",
+          `サスケCSVファイル: ${escapeForLog(leftFile.name)}`,
+          `サスケCSV判定文字コード: ${leftCsv.encoding}`,
+          `サスケCSV行数: ${leftCsv.rows.length}`,
+          "",
+          `企業HPまるっと調査CSVファイル: ${escapeForLog(rightFile.name)}`,
+          `企業HPまるっと調査CSV判定文字コード: ${rightCsv.encoding}`,
+          `企業HPまるっと調査CSV行数: ${rightCsv.rows.length}`,
+          `企業HPまるっと調査CSV有効key数: ${rightIndexResult.index.size}`,
+          `企業HPまるっと調査CSV空key行数: ${rightIndexResult.blankKeyCount}`,
+          `企業HPまるっと調査CSV重複key行数: ${rightIndexResult.duplicateKeyCount} ※最初の行のみ採用`,
+          "",
+          `JOIN成功行数: ${joinResult.matchedCount}`,
+          `JOIN未突合行数: ${joinResult.unmatchedCount}`,
+          `サスケCSV空key行数: ${joinResult.blankLeftKeyCount}`,
+          "",
+          `SNSフィルター: ${selectedSnsTypes.join(", ")}`,
+          `出力行数: ${filteredRows.length}`,
+          `出力文字コード: UTF-8 BOM`,
+          `出力ファイル: ${filename}`,
+          leftParseWarningText,
+          rightParseWarningText
+        ].join("\n");
+      }
+
       async function run() {
         try {
           const leftFile = els.leftFile.files[0];
           const rightFile = els.rightFile.files[0];
 
-          if (!leftFile) throw new Error("左CSVファイルを選択してください。");
-          if (!rightFile) throw new Error("右CSVファイルを選択してください。");
+          if (!leftFile) throw new Error("サスケCSVを選択してください。");
+          if (!rightFile) throw new Error("企業HPまるっと調査CSVを選択してください。");
 
           els.runBtn.disabled = true;
-          setStatus("読み込み中...");
+          setFrontResult("CSVを作成しています...");
 
           const [leftCsv, rightCsv] = await Promise.all([
-            readCsvFile(leftFile, "左CSV", LEFT_KEY),
-            readCsvFile(rightFile, "右CSV", RIGHT_KEY)
+            readCsvFile(leftFile, "サスケCSV", LEFT_KEY),
+            readCsvFile(rightFile, "企業HPまるっと調査CSV", RIGHT_KEY)
           ]);
 
           assertNoCrossDuplicateHeaders(leftCsv.headers, rightCsv.headers);
 
           const allHeaders = [...leftCsv.headers, ...rightCsv.headers];
 
-          requireHeaders(allHeaders, [FILTER_KEY], "左CSVまたは右CSV");
+          requireHeaders(allHeaders, [FILTER_KEY], "サスケCSVまたは企業HPまるっと調査CSV");
 
           const rightIndexResult = buildRightCsvIndex(rightCsv.rows);
-          const joinResult = leftJoinRows(leftCsv.rows, rightIndexResult.index);
+          const joinResult = joinRows(leftCsv.rows, rightIndexResult.index);
 
           const selectedSnsTypes = getSelectedSnsTypes();
           const filteredRows = filterRowsBySns(joinResult.joinedRows, selectedSnsTypes);
 
           const csvText = makeCsvText(filteredRows, allHeaders);
-          const filename = `left_join_filtered_${makeTimestamp()}.csv`;
+          const filename = `sasuke_hp_sns_${makeTimestamp()}.csv`;
 
           downloadUtf8BomCsv(csvText, filename);
 
-          const leftParseWarningText = leftCsv.parseErrors.length
-            ? `\n左CSV解析警告: ${leftCsv.parseErrors.length}件`
-            : "";
+          setFrontResult(`完了しました。${filteredRows.length}件のCSVを作成しました。`);
 
-          const rightParseWarningText = rightCsv.parseErrors.length
-            ? `\n右CSV解析警告: ${rightCsv.parseErrors.length}件`
-            : "";
-
-          setStatus(
-            [
-              "完了しました。",
-              "",
-              `左CSVファイル: ${escapeForLog(leftFile.name)}`,
-              `左CSV判定文字コード: ${leftCsv.encoding}`,
-              `左CSV行数: ${leftCsv.rows.length}`,
-              "",
-              `右CSVファイル: ${escapeForLog(rightFile.name)}`,
-              `右CSV判定文字コード: ${rightCsv.encoding}`,
-              `右CSV行数: ${rightCsv.rows.length}`,
-              `右CSV有効key数: ${rightIndexResult.index.size}`,
-              `右CSV空key行数: ${rightIndexResult.blankKeyCount}`,
-              `右CSV重複key行数: ${rightIndexResult.duplicateKeyCount} ※最初の行のみ採用`,
-              "",
-              `JOIN成功行数: ${joinResult.matchedCount}`,
-              `JOIN未突合行数: ${joinResult.unmatchedCount}`,
-              `左CSV空key行数: ${joinResult.blankLeftKeyCount}`,
-              "",
-              `SNSフィルター: ${selectedSnsTypes.join(", ")}`,
-              `出力行数: ${filteredRows.length}`,
-              `出力文字コード: UTF-8 BOM`,
-              `出力ファイル: ${filename}`,
-              leftParseWarningText,
-              rightParseWarningText
-            ].join("\n"),
-            "success"
-          );
+          setTechLog(makeDetailedLog({
+            leftFile,
+            rightFile,
+            leftCsv,
+            rightCsv,
+            rightIndexResult,
+            joinResult,
+            selectedSnsTypes,
+            filteredRows,
+            filename
+          }));
         } catch (error) {
-          setStatus("エラー: " + error.message, "error");
+          setFrontResult("エラーがあります。歯車アイコンから詳細を確認してください。", "error");
+          setTechLog("エラー: " + error.message);
         } finally {
           els.runBtn.disabled = false;
         }
@@ -913,10 +1099,36 @@
         });
       }
 
+      function openModal() {
+        els.modalBackdrop.classList.add("open");
+      }
+
+      function closeModal() {
+        els.modalBackdrop.classList.remove("open");
+      }
+
+      function setupModal() {
+        els.settingsBtn.addEventListener("click", openModal);
+        els.modalClose.addEventListener("click", closeModal);
+
+        els.modalBackdrop.addEventListener("click", event => {
+          if (event.target === els.modalBackdrop) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", event => {
+          if (event.key === "Escape") {
+            closeModal();
+          }
+        });
+      }
+
       setupFileNameDisplay(els.leftFile, els.leftName);
       setupFileNameDisplay(els.rightFile, els.rightName);
       setupDropArea();
       setupMultiSelect();
+      setupModal();
 
       els.runBtn.addEventListener("click", run);
     })();
