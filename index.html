@@ -353,7 +353,7 @@
     }
 
     .modal {
-      width: min(860px, 100%);
+      width: min(900px, 100%);
       max-height: min(82vh, 780px);
       overflow: hidden;
       background: #fff;
@@ -418,7 +418,8 @@
       line-height: 1.8;
     }
 
-    .modal-section ul {
+    .modal-section ul,
+    .modal-section ol {
       margin: 8px 0 0;
       padding-left: 20px;
     }
@@ -428,7 +429,7 @@
       color: #ffe4ef;
       border-radius: 16px;
       padding: 15px;
-      min-height: 140px;
+      min-height: 160px;
       white-space: pre-wrap;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12.5px;
@@ -465,7 +466,7 @@
       <div class="badge">CSVまとめツール</div>
       <h1>サスケCSVに企業HP調査データを追加</h1>
       <p class="lead">
-        2つのCSVを選んで、出力したいSNSを選択してください。できあがったCSVをそのままダウンロードできます。
+        2つのCSVを選んで、出力したいSNSを選択してください。条件に合う行だけをCSVでダウンロードできます。
       </p>
     </section>
 
@@ -513,7 +514,7 @@
         <div class="field">
           <label class="title">作成するCSV</label>
           <div class="note">
-            選択したSNSを含む行だけを残して、サスケCSVに調査結果を追加します。
+            選択したSNSを含み、メールアドレスがある行だけを出力します。
           </div>
         </div>
       </div>
@@ -546,8 +547,18 @@
             <li>企業HPまるっと調査CSVに同じ <code>入力URL</code> が複数ある場合は、最も上の行だけを使います。</li>
             <li>サスケCSVに同じ <code>URL</code> が複数ある場合は、そのすべての行に調査結果を追加します。</li>
             <li>一致しない行は、調査結果の列が空欄のままになります。</li>
-            <li>最後に <code>SNS種別</code> の値を見て、選択したSNSを含む行だけを出力します。</li>
           </ul>
+        </section>
+
+        <section class="modal-section">
+          <h3>出力時の条件</h3>
+          <ol>
+            <li><code>最終メールアドレス</code> を作成します。サスケCSVの <code>E-mail</code> があれば優先し、なければ企業HPまるっと調査CSVの <code>優先メール</code> を使います。</li>
+            <li><code>SNS種別</code> に、画面で選んだSNS名を含む行だけ残します。</li>
+            <li>サスケCSVの <code>事業所名</code> が「本社」を含む行、または空白の行だけ残します。</li>
+            <li><code>最終メールアドレス</code> が空白の行は削除します。</li>
+            <li><code>最終メールアドレス</code> が重複する場合は、最初の行だけ残します。</li>
+          </ol>
         </section>
 
         <section class="modal-section">
@@ -562,8 +573,12 @@
           <h3>固定している列名</h3>
           <div class="pill-list">
             <span class="pill">サスケCSV：URL</span>
+            <span class="pill">サスケCSV：E-mail</span>
+            <span class="pill">サスケCSV：事業所名</span>
             <span class="pill">企業HPまるっと調査CSV：入力URL</span>
+            <span class="pill">企業HPまるっと調査CSV：優先メール</span>
             <span class="pill">絞り込み：SNS種別</span>
+            <span class="pill">追加列：最終メールアドレス</span>
           </div>
         </section>
 
@@ -582,6 +597,11 @@
       const LEFT_KEY = "URL";
       const RIGHT_KEY = "入力URL";
       const FILTER_KEY = "SNS種別";
+
+      const SASUKE_EMAIL_KEY = "E-mail";
+      const PRIORITY_EMAIL_KEY = "優先メール";
+      const OFFICE_KEY = "事業所名";
+      const FINAL_EMAIL_KEY = "最終メールアドレス";
 
       const SNS_OPTIONS = [
         "YouTube",
@@ -622,6 +642,14 @@
 
       function normalizeKey(value) {
         return String(value ?? "").trim();
+      }
+
+      function normalizeEmailForDedupe(value) {
+        return String(value ?? "").trim().toLowerCase();
+      }
+
+      function hasValue(value) {
+        return String(value ?? "").trim() !== "";
       }
 
       function setFrontResult(message, type = "") {
@@ -673,6 +701,12 @@
         }
       }
 
+      function assertGeneratedHeaderNotExists(headers) {
+        if (headers.includes(FINAL_EMAIL_KEY)) {
+          throw new Error(`${FINAL_EMAIL_KEY} という列がすでに存在します。自動追加列と重複するため処理を停止しました。`);
+        }
+      }
+
       function hasUtf8Bom(bytes) {
         return bytes.length >= 3 &&
           bytes[0] === 0xEF &&
@@ -709,7 +743,7 @@
         }
       }
 
-      async function readCsvFile(file, fileLabel, requiredKey) {
+      async function readCsvFile(file, fileLabel, requiredHeaders) {
         const arrayBuffer = await file.arrayBuffer();
         const decoded = detectAndDecodeCsv(arrayBuffer);
 
@@ -736,7 +770,7 @@
         }
 
         assertNoDuplicateHeaders(headers, fileLabel);
-        requireHeaders(headers, [requiredKey], fileLabel);
+        requireHeaders(headers, requiredHeaders, fileLabel);
 
         const rows = (results.data || []).map(src => {
           const row = {};
@@ -819,6 +853,99 @@
         };
       }
 
+      function addFinalEmailColumn(rows) {
+        let fromSasukeCount = 0;
+        let fromPriorityCount = 0;
+        let blankCount = 0;
+
+        const nextRows = rows.map(row => {
+          const sasukeEmail = String(row[SASUKE_EMAIL_KEY] ?? "").trim();
+          const priorityEmail = String(row[PRIORITY_EMAIL_KEY] ?? "").trim();
+
+          let finalEmail = "";
+
+          if (sasukeEmail) {
+            finalEmail = sasukeEmail;
+            fromSasukeCount++;
+          } else if (priorityEmail) {
+            finalEmail = priorityEmail;
+            fromPriorityCount++;
+          } else {
+            blankCount++;
+          }
+
+          return {
+            ...row,
+            [FINAL_EMAIL_KEY]: finalEmail
+          };
+        });
+
+        return {
+          rows: nextRows,
+          fromSasukeCount,
+          fromPriorityCount,
+          blankCount
+        };
+      }
+
+      function filterRowsBySns(rows, selectedSnsTypes) {
+        if (selectedSnsTypes.length === 0) {
+          throw new Error("出力したいSNSを1つ以上選択してください。");
+        }
+
+        const keptRows = rows.filter(row => {
+          const value = String(row[FILTER_KEY] ?? "");
+          return selectedSnsTypes.some(type => value.includes(type));
+        });
+
+        return {
+          rows: keptRows,
+          removedCount: rows.length - keptRows.length
+        };
+      }
+
+      function filterRowsByOffice(rows) {
+        const keptRows = rows.filter(row => {
+          const value = String(row[OFFICE_KEY] ?? "").trim();
+          return value === "" || value.includes("本社");
+        });
+
+        return {
+          rows: keptRows,
+          removedCount: rows.length - keptRows.length
+        };
+      }
+
+      function filterRowsByFinalEmail(rows) {
+        const seen = new Set();
+        const keptRows = [];
+        let blankRemovedCount = 0;
+        let duplicateRemovedCount = 0;
+
+        for (const row of rows) {
+          const emailKey = normalizeEmailForDedupe(row[FINAL_EMAIL_KEY]);
+
+          if (!emailKey) {
+            blankRemovedCount++;
+            continue;
+          }
+
+          if (seen.has(emailKey)) {
+            duplicateRemovedCount++;
+            continue;
+          }
+
+          seen.add(emailKey);
+          keptRows.push(row);
+        }
+
+        return {
+          rows: keptRows,
+          blankRemovedCount,
+          duplicateRemovedCount
+        };
+      }
+
       function renderSnsOptions() {
         els.snsOptions.innerHTML = "";
 
@@ -864,17 +991,6 @@
         } else {
           els.snsSummary.textContent = `${selected.length}件選択中`;
         }
-      }
-
-      function filterRowsBySns(joinedRows, selectedSnsTypes) {
-        if (selectedSnsTypes.length === 0) {
-          throw new Error("出力したいSNSを1つ以上選択してください。");
-        }
-
-        return joinedRows.filter(row => {
-          const value = String(row[FILTER_KEY] ?? "");
-          return selectedSnsTypes.some(type => value.includes(type));
-        });
       }
 
       function makeCsvText(rows, headers) {
@@ -932,8 +1048,12 @@
         rightCsv,
         rightIndexResult,
         joinResult,
+        finalEmailResult,
+        snsFilterResult,
+        officeFilterResult,
+        finalEmailFilterResult,
         selectedSnsTypes,
-        filteredRows,
+        outputRows,
         filename
       }) {
         const leftParseWarningText = leftCsv.parseErrors.length
@@ -962,8 +1082,22 @@
           `JOIN未突合行数: ${joinResult.unmatchedCount}`,
           `サスケCSV空key行数: ${joinResult.blankLeftKeyCount}`,
           "",
+          `最終メールアドレス作成:`,
+          `  サスケCSVのE-mailを採用: ${finalEmailResult.fromSasukeCount}`,
+          `  企業HPまるっと調査CSVの優先メールを採用: ${finalEmailResult.fromPriorityCount}`,
+          `  どちらも空白: ${finalEmailResult.blankCount}`,
+          "",
           `SNSフィルター: ${selectedSnsTypes.join(", ")}`,
-          `出力行数: ${filteredRows.length}`,
+          `SNS条件で削除した行数: ${snsFilterResult.removedCount}`,
+          "",
+          `事業所名フィルター: 事業所名が空白、または「本社」を含む行だけ残す`,
+          `事業所名条件で削除した行数: ${officeFilterResult.removedCount}`,
+          "",
+          `最終メールアドレスフィルター:`,
+          `  空白で削除した行数: ${finalEmailFilterResult.blankRemovedCount}`,
+          `  重複で削除した行数: ${finalEmailFilterResult.duplicateRemovedCount}`,
+          "",
+          `出力行数: ${outputRows.length}`,
           `出力文字コード: UTF-8 BOM`,
           `出力ファイル: ${filename}`,
           leftParseWarningText,
@@ -983,28 +1117,38 @@
           setFrontResult("CSVを作成しています...");
 
           const [leftCsv, rightCsv] = await Promise.all([
-            readCsvFile(leftFile, "サスケCSV", LEFT_KEY),
-            readCsvFile(rightFile, "企業HPまるっと調査CSV", RIGHT_KEY)
+            readCsvFile(leftFile, "サスケCSV", [LEFT_KEY, SASUKE_EMAIL_KEY, OFFICE_KEY]),
+            readCsvFile(rightFile, "企業HPまるっと調査CSV", [RIGHT_KEY, PRIORITY_EMAIL_KEY])
           ]);
 
           assertNoCrossDuplicateHeaders(leftCsv.headers, rightCsv.headers);
 
-          const allHeaders = [...leftCsv.headers, ...rightCsv.headers];
+          const baseHeaders = [...leftCsv.headers, ...rightCsv.headers];
+          assertGeneratedHeaderNotExists(baseHeaders);
 
-          requireHeaders(allHeaders, [FILTER_KEY], "サスケCSVまたは企業HPまるっと調査CSV");
+          requireHeaders(baseHeaders, [FILTER_KEY], "サスケCSVまたは企業HPまるっと調査CSV");
+
+          const outputHeaders = [...baseHeaders, FINAL_EMAIL_KEY];
 
           const rightIndexResult = buildRightCsvIndex(rightCsv.rows);
           const joinResult = joinRows(leftCsv.rows, rightIndexResult.index);
 
-          const selectedSnsTypes = getSelectedSnsTypes();
-          const filteredRows = filterRowsBySns(joinResult.joinedRows, selectedSnsTypes);
+          const finalEmailResult = addFinalEmailColumn(joinResult.joinedRows);
 
-          const csvText = makeCsvText(filteredRows, allHeaders);
+          const selectedSnsTypes = getSelectedSnsTypes();
+          const snsFilterResult = filterRowsBySns(finalEmailResult.rows, selectedSnsTypes);
+
+          const officeFilterResult = filterRowsByOffice(snsFilterResult.rows);
+
+          const finalEmailFilterResult = filterRowsByFinalEmail(officeFilterResult.rows);
+          const outputRows = finalEmailFilterResult.rows;
+
+          const csvText = makeCsvText(outputRows, outputHeaders);
           const filename = `sasuke_hp_sns_${makeTimestamp()}.csv`;
 
           downloadUtf8BomCsv(csvText, filename);
 
-          setFrontResult(`完了しました。${filteredRows.length}件のCSVを作成しました。`);
+          setFrontResult(`完了しました。${outputRows.length}件のCSVを作成しました。`);
 
           setTechLog(makeDetailedLog({
             leftFile,
@@ -1013,8 +1157,12 @@
             rightCsv,
             rightIndexResult,
             joinResult,
+            finalEmailResult,
+            snsFilterResult,
+            officeFilterResult,
+            finalEmailFilterResult,
             selectedSnsTypes,
-            filteredRows,
+            outputRows,
             filename
           }));
         } catch (error) {
