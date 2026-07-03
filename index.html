@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>サスケCSV結合ツール</title>
 
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./site.webmanifest">
+  <meta name="theme-color" content="#ec4899">
+
   <style>
     :root {
       --bg: #fff5f8;
@@ -92,6 +99,34 @@
       font-size: clamp(28px, 4vw, 44px);
       letter-spacing: -0.045em;
       line-height: 1.12;
+    }
+
+    .hero-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero-title-icon {
+      width: 1.12em;
+      height: 1.12em;
+      object-fit: cover;
+      border-radius: 0.28em;
+      box-shadow: 0 10px 22px rgba(157, 23, 77, 0.14);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 520px) {
+      .hero-title {
+        gap: 8px;
+      }
+
+      .hero-title-icon {
+        width: 1em;
+        height: 1em;
+      }
     }
 
     .lead {
@@ -464,7 +499,10 @@
 
     <section class="hero">
       <div class="badge">CSVまとめツール</div>
-      <h1>サスケCSVに企業HP調査データを追加</h1>
+      <h1 class="hero-title">
+        <img class="hero-title-icon" src="./soup-shuriken-title-icon.png" alt="" aria-hidden="true">
+        <span>サスケCSVに企業HP調査データを追加</span>
+      </h1>
       <p class="lead">
         2つのCSVを選んで、出力したいSNSを選択してください。条件に合う行だけをCSVでダウンロードできます。
       </p>
@@ -646,10 +684,6 @@
 
       function normalizeEmailForDedupe(value) {
         return String(value ?? "").trim().toLowerCase();
-      }
-
-      function hasValue(value) {
-        return String(value ?? "").trim() !== "";
       }
 
       function setFrontResult(message, type = "") {
